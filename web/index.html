@@ -280,6 +280,12 @@
         }).then(r => r.json()).catch(() => ({}));
     }
 
+    function doClose() {
+        app.classList.remove('open');
+        closeModal();
+        nui('close');
+    }
+
     function openModal(title, bodyHtml, onOk) {
         modalTitle.textContent = title;
         modalBody.innerHTML = bodyHtml;
@@ -466,7 +472,7 @@
     });
 
     // --- UI events ---
-    document.getElementById('closeBtn').addEventListener('click', () => nui('close'));
+    document.getElementById('closeBtn').addEventListener('click', doClose);
     document.getElementById('refreshPlayers').addEventListener('click', loadPlayers);
     document.getElementById('refreshVehicles').addEventListener('click', loadVehicles);
     document.getElementById('playerSearch').addEventListener('input', renderPlayers);
@@ -475,7 +481,7 @@
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             if (modal.classList.contains('open')) closeModal();
-            else nui('close');
+            else doClose();
         }
     });
 })();

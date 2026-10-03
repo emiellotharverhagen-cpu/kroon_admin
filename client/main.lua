@@ -375,18 +375,37 @@ function SetMenuOpen(open)
     SendNUIMessage({ action = open and 'open' or 'close' })
 end
 
+-- Forceer sluiten + focus-release, ook als de NUI-callback niet (meer) werkt.
+-- Wordt gebruikt als fallback zodat niemand in het menu blijft hangen.
+local function ForceCloseMenu()
+    MenuOpen = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
+end
+
 RegisterCommand('kroon_staffmenu', function()
     if not OnDuty then
         Notify('Je moet eerst in staffdienst (~b~F11~s~).')
         return
     end
-    SetMenuOpen(not MenuOpen)
+    if MenuOpen then ForceCloseMenu() else SetMenuOpen(true) end
 end, false)
 RegisterKeyMapping('kroon_staffmenu', 'Kroon: staffmenu openen', 'keyboard', 'F9')
 
 RegisterNUICallback('close', function(_, cb)
-    SetMenuOpen(false)
+    ForceCloseMenu()
     cb({ ok = true })
+end)
+
+-- Fallback: detecteer ESC ook in-game zodat het menu altijd te sluiten is,
+-- zelfs als de NUI-focus/callback om een of andere reden niet reageert.
+CreateThread(function()
+    while true do
+        if MenuOpen and IsControlJustPressed(0, 322) then -- ESC
+            ForceCloseMenu()
+        end
+        Wait(MenuOpen and 0 or 250)
+    end
 end)
 
 RegisterNUICallback('getPlayers', function(_, cb)
