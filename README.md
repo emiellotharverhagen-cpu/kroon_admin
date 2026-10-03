@@ -113,7 +113,7 @@ printf '%s' "$PANEL_PASSWORD" | node /opt/kroon_admin/staff-panel/hash-password.
 unset PANEL_PASSWORD
 ```
 
-Kopieer `/home/runner/work/kroon_admin/kroon_admin/staff-panel/.env.example` buiten de repository naar `/etc/kroon_admin/staff-panel.env`. Vul `PANEL_ORIGIN` in met de publieke HTTPS-origin, plaats de account-hashes in `PANEL_USERS_JSON` en gebruik hetzelfde willekeurige token als in `server.cfg`. Beperk de toegang tot het env-bestand:
+Kopieer `staff-panel/.env.example` buiten de repository naar `/etc/kroon_admin/staff-panel.env`. Vul `PANEL_ORIGIN` in met de publieke HTTPS-origin, plaats de account-hashes in `PANEL_USERS_JSON` en gebruik hetzelfde willekeurige token als in `server.cfg`. Beperk de toegang tot het env-bestand:
 
 ```sh
 sudo chown root:kroon-admin /etc/kroon_admin/staff-panel.env
@@ -123,7 +123,20 @@ npm ci
 npm run build:panel
 ```
 
-Voer de service uit met de meegeleverde `/home/runner/work/kroon_admin/kroon_admin/staff-panel/deploy/kroon-admin-panel.service` (pas `/opt/kroon_admin` aan als je een andere installatiemap kiest). Maak eerst een beperkte Linux-servicegebruiker aan en zorg dat die de resourcebestanden en gebouwde frontend kan lezen. De Node-service bindt bewust alleen op `127.0.0.1`.
+Maak een beperkte Linux-servicegebruiker aan, installeer de repo in `/opt/kroon_admin` en zorg dat die gebruiker de resourcebestanden en gebouwde frontend kan lezen. Installeer de meegeleverde `staff-panel/deploy/kroon-admin-panel.service` als `/etc/systemd/system/kroon-admin-panel.service` (pas `/opt/kroon_admin` in de unit aan als je een andere installatiemap kiest), daarna:
+
+```sh
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin kroon-admin
+sudo install -d -o root -g kroon-admin -m 750 /etc/kroon_admin
+sudo install -o root -g kroon-admin -m 640 staff-panel/.env.example /etc/kroon_admin/staff-panel.env
+sudoedit /etc/kroon_admin/staff-panel.env
+sudo install -o root -g root -m 644 staff-panel/deploy/kroon-admin-panel.service /etc/systemd/system/kroon-admin-panel.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now kroon-admin-panel
+sudo systemctl status kroon-admin-panel
+```
+
+De Node-service bindt bewust alleen op `127.0.0.1`.
 
 Voor updates: haal je eigen deployment bij, voer `npm ci && npm run build:panel` uit en herstart de systemd-service. De React-source staat in `staff-panel/ui`; productie-output staat in `staff-panel/public`.
 
@@ -147,6 +160,7 @@ De Node-service vertrouwt `X-Real-IP` alleen omdat hij op loopback hoort te bind
 ### Panelfuncties en beveiliging
 
 - Login vereist staffaccounts met wachtwoordhashes; accounts en wachtwoorden worden niet in de repository gezet.
+- Elk account heeft volledige staffbevoegdheden; er is geen rol- of permissieniveau per account.
 - Sessies zijn tijdelijk, in-memory, `HttpOnly`, `Secure` en `SameSite=Strict`. POST-aanvragen vereisen een geldige origin en CSRF-token; aanmeldpogingen worden beperkt.
 - Het panel gebruikt dezelfde server-side acties: kick, ban, warn, mute, freeze, revive, geld/items, voertuigen, toggles, teleport naar opgeslagen locaties, servermededelingen en auditgeschiedenis. Geld/items vereisen ESX of QBCore.
 - God mode, noclip, onzichtbaarheid en teleportlocaties worden vanaf het panel op de geselecteerde speler toegepast. Een webbrowser heeft geen in-game waypoint of eigen FiveM-personage, dus `goto`, `bring` en waypoint-teleport zijn bewust niet beschikbaar in het webpanel.

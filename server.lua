@@ -155,7 +155,9 @@ local function listPlayers()
             local reason = safeText(body.reason, Config.MaxReasonLength)
             local targetName, targetLicense = playerName(target), getLicense(target)
             if action == 'kick' then
+                panelLogAction(adminName, action, target, reason)
                 DropPlayer(target, reason ~= '' and reason or Config.Locale.kicked)
+                return { ok = true }
             elseif action == 'ban' then
                 if reason == '' then reason = 'Geen reden opgegeven' end
                 local days = math.max(0, math.min(3650, tonumber(body.days) or Config.BanDefaultDays))

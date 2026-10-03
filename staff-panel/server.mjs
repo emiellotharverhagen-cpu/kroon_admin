@@ -39,7 +39,8 @@ if (panelOriginUrl.protocol !== 'https:' || panelOriginUrl.pathname !== '/' || p
 const panelOrigin = panelOriginUrl.origin
 
 const upstream = new URL(process.env.FIVEM_API_URL || 'http://127.0.0.1:30120/kroon_admin/api')
-if (upstream.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(upstream.hostname)) {
+if (upstream.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(upstream.hostname)
+  || upstream.username || upstream.password || upstream.search || upstream.hash) {
   throw new Error('FIVEM_API_URL moet een lokale HTTP-adres zijn zodat het gedeelde geheim niet over het netwerk reist.')
 }
 const upstreamBase = upstream.href.replace(/\/+$/, '')
@@ -93,6 +94,7 @@ function json(response, status, body, headers = {}) {
 
 function applySecurityHeaders(response) {
   response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'")
+  response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   response.setHeader('Referrer-Policy', 'no-referrer')
   response.setHeader('X-Content-Type-Options', 'nosniff')
   response.setHeader('X-Frame-Options', 'DENY')

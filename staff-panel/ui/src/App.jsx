@@ -117,7 +117,11 @@ function App() {
     } catch (error) { showToast(error.message) } finally { setBusy(false) }
   }
 
-  const playerAction = (action) => selected && submit('action', { action, target: selected.id, reason, days: Number(days) })
+  const playerAction = (action) => {
+    if (!selected) return
+    if (['kick', 'ban'].includes(action) && !window.confirm(`${action === 'ban' ? 'Verban' : 'Verwijder'} ${selected.name} (ID ${selected.id})?`)) return
+    submit('action', { action, target: selected.id, reason, days: Number(days) })
+  }
   const tool = (action, extra = {}) => selected && submit('tool', { action, target: selected.id, ...extra })
 
   if (!session) return (
