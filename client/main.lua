@@ -354,6 +354,21 @@ end)
 
 --- F9 Menu (NUI) ---------------------------------------------------------
 
+-- Eenmalige handlers voor data die van de server terugkomt; de NUI-pollt
+-- hiervoor. Dit voorkomt opgestapelde AddEventHandler-registraties.
+RegisterNetEvent('kroon_admin:client:receivePlayers', function(players)
+    SendNUIMessage({ action = 'players', players = players or {} })
+end)
+RegisterNetEvent('kroon_admin:client:receiveGarageVehicles', function(vehicles)
+    SendNUIMessage({ action = 'vehicles', vehicles = vehicles or {} })
+end)
+RegisterNetEvent('kroon_admin:client:receiveWarns', function(_, warns)
+    SendNUIMessage({ action = 'warns', warns = warns or {} })
+end)
+RegisterNetEvent('kroon_admin:client:receiveInventory', function(targetId, items)
+    SendNUIMessage({ action = 'inventory', target = targetId, items = items or {} })
+end)
+
 function SetMenuOpen(open)
     MenuOpen = open
     SetNuiFocus(open, open)
@@ -375,11 +390,6 @@ RegisterNUICallback('close', function(_, cb)
 end)
 
 RegisterNUICallback('getPlayers', function(_, cb)
-    local handler
-    handler = AddEventHandler('kroon_admin:client:receivePlayers', function(players)
-        RemoveEventHandler(handler)
-        SendNUIMessage({ action = 'players', players = players })
-    end)
     TriggerServerEvent('kroon_admin:server:getPlayers')
     cb({ ok = true })
 end)
@@ -408,21 +418,11 @@ RegisterNUICallback('bring', function(data, cb)
 end)
 
 RegisterNUICallback('getWarns', function(data, cb)
-    local handler
-    handler = AddEventHandler('kroon_admin:client:receiveWarns', function(_, warns)
-        RemoveEventHandler(handler)
-        SendNUIMessage({ action = 'warns', warns = warns })
-    end)
     TriggerServerEvent('kroon_admin:server:getWarns', data and data.id)
     cb({ ok = true })
 end)
 
 RegisterNUICallback('getGarageVehicles', function(data, cb)
-    local handler
-    handler = AddEventHandler('kroon_admin:client:receiveGarageVehicles', function(vehicles)
-        RemoveEventHandler(handler)
-        SendNUIMessage({ action = 'vehicles', vehicles = vehicles })
-    end)
     TriggerServerEvent('kroon_admin:server:getGarageVehicles', data and data.owner)
     cb({ ok = true })
 end)
@@ -433,11 +433,6 @@ RegisterNUICallback('vehicleAction', function(data, cb)
 end)
 
 RegisterNUICallback('getInventory', function(data, cb)
-    local handler
-    handler = AddEventHandler('kroon_admin:client:receiveInventory', function(targetId, items)
-        RemoveEventHandler(handler)
-        SendNUIMessage({ action = 'inventory', target = targetId, items = items })
-    end)
     TriggerServerEvent('kroon_admin:server:getInventory', data and data.id)
     cb({ ok = true })
 end)

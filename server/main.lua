@@ -133,7 +133,10 @@ end
 RegisterNetEvent('kroon_admin:server:getPlayers', function()
     local src = source
     if not CanUseStaffTools(src) then return end
-    TriggerClientEvent('kroon_admin:client:receivePlayers', src, BuildPlayerList())
+    local players = BuildPlayerList()
+    print(('[kroon_admin] %s vraagt spelerslijst op (%d spelers)'):format(
+        GetPlayerName(src) or src, #players))
+    TriggerClientEvent('kroon_admin:client:receivePlayers', src, players)
 end)
 
 --- Kick / Warn / Teleport / Spectate -------------------------------
