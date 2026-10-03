@@ -80,13 +80,7 @@ local function getFramework()
     return nil, nil
 end
 
-local function findPlayerByLicense(license)
-    for _, id in ipairs(GetPlayers()) do
-        local src = tonumber(id)
-        if getLicense(src) == license then return src end
-    end
-
-    local function listPlayers()
+local function listPlayers()
         local players = {}
         for _, id in ipairs(GetPlayers()) do
             local src = tonumber(id)
@@ -144,7 +138,7 @@ local function findPlayerByLicense(license)
 
     local function panelOperation(path, body)
         if path == '/players' then
-            return { ok = true, players = listPlayers() }
+            return { ok = true, players = listPlayers(), locations = Config.SavedLocations }
         elseif path == '/logs' then
             local rows = MySQL.query.await(('SELECT id, admin_name, action, target_name, details, created_at FROM `%s` ORDER BY id DESC LIMIT ?'):format(Config.Tables.logs), { Config.LogLimit })
             return { ok = true, logs = rows or {} }
@@ -278,7 +272,6 @@ local function findPlayerByLicense(license)
             return { ok = true }
         end
         return nil, 'Onbekende API-route.'
-    end
 end
 
 RegisterNetEvent('kroon_admin:server:requestOpen', function()

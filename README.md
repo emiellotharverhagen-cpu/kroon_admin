@@ -12,6 +12,7 @@ Nederlandstalige FiveM admin resource met Lua-serverlogica, ACE-autorisatie en e
 - Voertuigen spawnen, servermededelingen sturen en auditlogs inzien.
 - MySQL-opslag voor bans, waarschuwingen en beheeracties; optionele Discord-webhook.
 - Commando `/admin` en standaard sneltoets F10.
+- Apart, optioneel zelf te hosten staffwebpanel met login, sessiebeveiliging en dezelfde server-side managementacties.
 
 ## Vereisten en installatie
 
@@ -79,3 +80,75 @@ Gebruik de webhook placeholder pas nadat je een eigen webhook hebt geconfigureer
 - `database.lua`, `sql/schema.sql`: database-initialisatie en schema.
 - `web/src`: React-interface en styling.
 - `web/dist`: NUI-output die door FiveM geladen wordt.
+
+## Staffwebpanel (zelf hosten)
+
+Het staffwebpanel is een afzonderlijke Node.js-service die met een gedeeld geheim met de FiveM-resource communiceert. Het is optioneel; de in-game NUI blijft werken als het panel uit staat. Deze repository levert de code en deploymentbestanden, maar **host of publiceer het panel niet**. Je hebt zelf een VPS, domein en TLS-certificaat nodig. Gebruik Node.js 20 of hoger.
+
+### FiveM-server configuratie
+
+Genereer een lang, willekeurig geheim op de VPS:
+
+```sh
+openssl rand -hex 32
+```
+
+Gebruik hetzelfde token in de `server.cfg` van FiveM en het afgeschermde omgevingsbestand van het panel. Bewaar echte tokens en wachtwoordhashes buiten Git:
+
+```cfg
+set kroon_admin_panel_token "PLAK_HIER_HET_64_TEKENS_LANGE_HEX_TOKEN"
+ensure oxmysql
+ensure kroon_admin
+```
+
+De resource registreert de HTTP-bridge alleen als deze convar is ingesteld. De panelservice praat standaard uitsluitend via `127.0.0.1:30120`; stel dit niet in op een openbaar of extern adres. De bridge controleert het gedeelde token op elke aanvraag. `SetHttpHandler` is een gedeelde FiveM-serverhandler: controleer of een andere resource deze al registreert voordat je de panel-API inschakelt.
+
+### Staffaccounts en panel bouwen
+
+Maak voor elk staffaccount een aparte scrypt-hash; wachtwoorden worden niet als plaintext opgeslagen. Voer dit uit op de VPS en plak de JSON-uitvoer in `PANEL_USERS_JSON`:
+
+```sh
+read -s -p "Staffwachtwoord: " PANEL_PASSWORD; echo
+printf '%s' "$PANEL_PASSWORD" | node /opt/kroon_admin/staff-panel/hash-password.mjs
+unset PANEL_PASSWORD
+```
+
+Kopieer `/home/runner/work/kroon_admin/kroon_admin/staff-panel/.env.example` buiten de repository naar `/etc/kroon_admin/staff-panel.env`. Vul `PANEL_ORIGIN` in met de publieke HTTPS-origin, plaats de account-hashes in `PANEL_USERS_JSON` en gebruik hetzelfde willekeurige token als in `server.cfg`. Beperk de toegang tot het env-bestand:
+
+```sh
+sudo chown root:kroon-admin /etc/kroon_admin/staff-panel.env
+sudo chmod 640 /etc/kroon_admin/staff-panel.env
+cd /opt/kroon_admin
+npm ci
+npm run build:panel
+```
+
+Voer de service uit met de meegeleverde `/home/runner/work/kroon_admin/kroon_admin/staff-panel/deploy/kroon-admin-panel.service` (pas `/opt/kroon_admin` aan als je een andere installatiemap kiest). Maak eerst een beperkte Linux-servicegebruiker aan en zorg dat die de resourcebestanden en gebouwde frontend kan lezen. De Node-service bindt bewust alleen op `127.0.0.1`.
+
+Voor updates: haal je eigen deployment bij, voer `npm ci && npm run build:panel` uit en herstart de systemd-service. De React-source staat in `staff-panel/ui`; productie-output staat in `staff-panel/public`.
+
+### HTTPS reverse proxy (Nginx voorbeeld)
+
+Configureer eerst TLS voor je domein (bijvoorbeeld met Certbot). Plaats binnen de HTTPS `server`-sectie:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3080;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+}
+```
+
+De Node-service vertrouwt `X-Real-IP` alleen omdat hij op loopback hoort te binden en de reverse proxy deze header overschrijft. Laat poort 3080 niet publiek toegankelijk zijn. Configureer de firewall alleen voor SSH, HTTPS en de benodigde FiveM-poorten.
+
+### Panelfuncties en beveiliging
+
+- Login vereist staffaccounts met wachtwoordhashes; accounts en wachtwoorden worden niet in de repository gezet.
+- Sessies zijn tijdelijk, in-memory, `HttpOnly`, `Secure` en `SameSite=Strict`. POST-aanvragen vereisen een geldige origin en CSRF-token; aanmeldpogingen worden beperkt.
+- Het panel gebruikt dezelfde server-side acties: kick, ban, warn, mute, freeze, revive, geld/items, voertuigen, toggles, teleport naar opgeslagen locaties, servermededelingen en auditgeschiedenis. Geld/items vereisen ESX of QBCore.
+- God mode, noclip, onzichtbaarheid en teleportlocaties worden vanaf het panel op de geselecteerde speler toegepast. Een webbrowser heeft geen in-game waypoint of eigen FiveM-personage, dus `goto`, `bring` en waypoint-teleport zijn bewust niet beschikbaar in het webpanel.
+- De gebruikerslijst en auditgeschiedenis zijn alleen na aanmelden beschikbaar; ongeldige of verlopen sessies moeten opnieuw aanmelden.
+- Het panelproces houdt sessies tijdelijk in geheugen; na een serviceherstart melden staffleden zich opnieuw aan. Deel geen tokens of wachtwoordhashes en zet het panel niet online zonder HTTPS.

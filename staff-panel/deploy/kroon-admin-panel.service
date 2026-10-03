@@ -1,0 +1,20 @@
+[Unit]
+Description=Kroon Admin staff web panel
+After=network.target
+
+[Service]
+Type=simple
+User=kroon-admin
+Group=kroon-admin
+WorkingDirectory=/opt/kroon_admin
+EnvironmentFile=/etc/kroon_admin/staff-panel.env
+ExecStart=/usr/bin/node /opt/kroon_admin/staff-panel/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target
