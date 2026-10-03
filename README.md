@@ -13,7 +13,7 @@ Volledig **ingame** staffpanel voor FiveM (Lua + NUI), vergelijkbaar met QS-Admi
   - **Ga naar / Breng** teleports
 - **Garage (okokGarage)**: alle voertuigen van spelers bekijken, **spawnen**, **repareren** en **verwijderen** op kenteken.
 - **Inventory (ox_inventory)**: inventory van elke speler openen, items **bekijken**, **geven** en **wegnemen** (met slot-ondersteuning).
-- **Noclip zoals in TxAdmin**: rechtermuisknop togglet (tijdens staffdienst), muis kijkt rond, WASD beweegt, Q/E omhoog/omlaag, Shift = snel, Alt = traag.
+- **Noclip zoals in TxAdmin**: Page Down togglet (tijdens staffdienst), muis kijkt rond, WASD beweegt, Q/E omhoog/omlaag, Shift = snel, Alt = traag.
 
 ## Groups
 
@@ -47,8 +47,14 @@ Alles staat in `config.lua`:
 - `Config.AdminOutfits` — staffkleding per model (male/female)
 - `Config.Garage.ExportCandidates` — export-namen die geprobeerd worden voor okokGarage
 
-De toetsen **F11** (staffdienst) en **F9** (menu) worden via `RegisterKeyMapping` gebonden;
-spelers kunnen ze zelf aanpassen via *Instellingen → Keybindings → FiveM*.
+De toetsen worden via `RegisterKeyMapping` gebonden en zijn dus **zelf aan te passen**
+via *Instellingen → Keybindings → FiveM*:
+
+| Commando | Standaardtoets | Functie |
+|---|---|---|
+| `kroon_staffdienst` | F11 | Staffdienst aan/uit (incl. staffkleding) |
+| `kroon_staffmenu` | F9 | Staffmenu openen/sluiten |
+| `kroon_noclip` | Page Down | Noclip aan/uit (TxAdmin-stijl) |
 
 ## Bestandsstructuur
 

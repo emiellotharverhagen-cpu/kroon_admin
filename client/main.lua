@@ -108,8 +108,9 @@ RegisterCommand('kroon_staffdienst', RequestToggleDuty, false)
 RegisterKeyMapping('kroon_staffdienst', 'Kroon: staffdienst aan/uit', 'keyboard', 'F11')
 
 --- Noclip (TxAdmin-stijl) --------------------------------------------
--- Rechtermuisknop (standaard) togglet noclip tijdens staffdienst.
--- Muis kijkt, WASD beweegt, Q/E omhoog/omlaag, Shift snel, Alt traag.
+-- Toggle via keybind 'kroon_noclip' (standaard Page Down, aanpasbaar in de
+-- GTA keybind-instellingen). Muis kijkt, WASD beweegt, Q/E omhoog/omlaag,
+-- Shift snel, Alt traag.
 
 local noclipPos = nil
 local noclipCam = nil
@@ -160,14 +161,14 @@ end
 
 RegisterNetEvent('kroon_admin:client:noclipState', function() end)
 
-CreateThread(function()
-    while true do
-        if OnDuty and IsControlJustPressed(0, Config.Noclip.ToggleControl or 25) then
-            ToggleNoclip(not NoclipActive)
-        end
-        Wait(NoclipActive and 0 or 250)
+RegisterCommand('kroon_noclip', function()
+    if not OnDuty then
+        Notify('Je moet eerst in staffdienst (~b~F11~s~).')
+        return
     end
-end)
+    ToggleNoclip(not NoclipActive)
+end, false)
+RegisterKeyMapping('kroon_noclip', 'Kroon: noclip aan/uit', 'keyboard', 'pagedown')
 
 CreateThread(function()
     while true do
@@ -177,7 +178,6 @@ CreateThread(function()
             DisableAllControlActions(0)
             EnableControlAction(0, 1, true)   -- muis X
             EnableControlAction(0, 2, true)   -- muis Y
-            EnableControlAction(0, nc.ToggleControl or 25, true)
 
             local lookX = GetDisabledControlNormal(0, 1) * 6.0
             local lookY = GetDisabledControlNormal(0, 2) * 6.0

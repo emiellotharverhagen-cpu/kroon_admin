@@ -18,9 +18,11 @@ Config.AdminLicenses = {
 -- Staffdienst (F11) en menu (F9) worden via RegisterKeyMapping gebonden zodat
 -- spelers ze zelf kunnen aanpassen in Instellingen > Keybindings > FiveM.
 
--- Noclip (TxAdmin-stijl: rechtermuisknop togglet, muis-look, WASD bewegen)
+-- Noclip (TxAdmin-stijl)
+-- De toggle-toets is instelbaar via GTA: Instellingen > Keybindings > FiveM
+-- (commando: kroon_noclip, standaard Page Down). De onderstaande controls zijn
+-- de bediening terwijl noclip actief is (GTA control ids).
 Config.Noclip = {
-    ToggleControl = 25,     -- INPUT_AIM (rechtermuisknop) terwijl staffdienst aan staat
     Forward       = 32,     -- W
     Backward      = 33,     -- S
     Left          = 34,     -- A
