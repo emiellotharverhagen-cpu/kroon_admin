@@ -11,7 +11,8 @@ RegisterNetEvent('kroon_admin:client:open', function()
     SetNuiFocus(true, true)
     SendNUIMessage({
         type = 'open',
-        locations = Config.SavedLocations
+        locations = Config.SavedLocations,
+        toggles = toggles
     })
 end)
 
@@ -133,13 +134,14 @@ CreateThread(function()
             sleep = 0
             SetPlayerInvincible(PlayerId(), true)
             SetEntityCanBeDamaged(ped, false)
-        elseif not IsEntityDead(ped) then
+        else
             SetPlayerInvincible(PlayerId(), false)
             SetEntityCanBeDamaged(ped, true)
         end
 
         if toggles.noclip then
             sleep = 0
+            SetEntityCollision(ped, false, false)
             local coords = GetEntityCoords(ped)
             local heading = GetGameplayCamRot(2).z
             local speed = IsControlPressed(0, 21) and 3.0 or 1.0
@@ -156,6 +158,8 @@ CreateThread(function()
             SetEntityVelocity(ped, 0.0, 0.0, 0.0)
             SetEntityCoordsNoOffset(ped, coords.x + direction.x * speed * GetFrameTime(), coords.y + direction.y * speed * GetFrameTime(), coords.z + vertical * speed * GetFrameTime(), true, true, true)
             SetEntityHeading(ped, heading)
+        else
+            SetEntityCollision(ped, true, true)
         end
 
         if muted then

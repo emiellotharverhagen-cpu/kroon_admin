@@ -36,7 +36,7 @@ local function logAction(admin, action, target, details)
     local targetLicense = target and getLicense(target) or nil
     local detailText = safeText(details or '', 1000)
     MySQL.insert(('INSERT INTO `%s` (admin_name, admin_license, action, target_name, target_license, details) VALUES (?, ?, ?, ?, ?, ?)'):format(Config.Tables.logs), {
-        adminName, adminLicense, action, targetName, targetLicense, detailText
+        adminName, adminLicense or json.null, action, targetName or json.null, targetLicense or json.null, detailText
     })
     if Config.Webhook and Config.Webhook ~= '' then
         PerformHttpRequest(Config.Webhook, function() end, 'POST', json.encode({
@@ -133,9 +133,20 @@ RegisterNetEvent('kroon_admin:server:action', function(data)
         if reason == '' then reason = 'Geen reden opgegeven' end
         local days = math.max(0, math.min(3650, tonumber(data.days) or Config.BanDefaultDays))
         local expiresAt = days > 0 and os.date('%Y-%m-%d %H:%M:%S', os.time() + days * 86400) or nil
-        MySQL.insert.await(('INSERT INTO `%s` (name, license, reason, admin, expires_at) VALUES (?, ?, ?, ?, ?)'):format(Config.Tables.bans), {
-            targetName, targetLicense, reason, playerName(source), expiresAt
-        })
+        local insertBan
+        if expiresAt then
+            insertBan = MySQL.insert.await(('INSERT INTO `%s` (name, license, reason, admin, expires_at) VALUES (?, ?, ?, ?, ?)'):format(Config.Tables.bans), {
+                targetName, targetLicense, reason, playerName(source), expiresAt
+            })
+        else
+            insertBan = MySQL.insert.await(('INSERT INTO `%s` (name, license, reason, admin, expires_at) VALUES (?, ?, ?, ?, NULL)'):format(Config.Tables.bans), {
+                targetName, targetLicense, reason, playerName(source)
+            })
+        end
+        if not insertBan then
+            TriggerClientEvent('kroon_admin:client:notify', source, 'De verbanning kon niet in de database worden opgeslagen.', 'error')
+            return
+        end
         logAction(source, action, target, reason)
         DropPlayer(target, ('%s Reden: %s'):format(Config.Locale.banned, reason))
     elseif action == 'warn' then
@@ -209,7 +220,11 @@ RegisterNetEvent('kroon_admin:server:tool', function(data)
                 else
                     local player = core.GetPlayerFromId(target)
                     if not player then error('Speler niet geladen') end
-                    player.addAccountMoney(account == 'bank' and 'bank' or 'money', amount)
+                    if account == 'bank' then
+                        player.addAccountMoney('bank', amount)
+                    else
+                        player.addMoney(amount)
+                    end
                 end
             else
                 local item = safeText(data.item, 50)

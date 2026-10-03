@@ -27,6 +27,7 @@ function App() {
   const [reason, setReason] = useState('')
   const [days, setDays] = useState('0')
   const [amount, setAmount] = useState('')
+  const [itemAmount, setItemAmount] = useState('')
   const [item, setItem] = useState('')
   const [account, setAccount] = useState('cash')
   const [vehicle, setVehicle] = useState('')
@@ -41,6 +42,7 @@ function App() {
       if (data.type === 'open') {
         setVisible(true)
         setLocations(data.locations || [])
+        setToggles(data.toggles || {})
         callNui('players')
         callNui('logs')
       }
@@ -147,8 +149,8 @@ function App() {
             <div className="field"><label>Doelspeler</label><select value={selected?.id || ''} onChange={(event) => setSelected(players.find((player) => player.id === Number(event.target.value)) || null)}><option value="">Selecteer speler</option>{players.map((player) => <option key={player.id} value={player.id}>{player.name} (ID {player.id})</option>)}</select></div>
             <div className="field"><label>Geldbedrag</label><div className="input-suffix"><input type="number" min="1" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Bedrag" /><select value={account} onChange={(event) => setAccount(event.target.value)}><option value="cash">Contant</option><option value="bank">Bank</option></select></div></div>
             <button className="primary-button" disabled={!selected || !amount} onClick={() => { tool('giveMoney', { target: selected.id, amount: Number(amount), account }); setAmount('') }}>Geld geven <span>→</span></button>
-            <div className="field item-field"><label>Itemnaam & aantal</label><div className="input-suffix"><input value={item} onChange={(event) => setItem(event.target.value)} placeholder="Bijv. water" /><input type="number" min="1" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Aantal" /></div></div>
-            <button className="secondary-button" disabled={!selected || !item || !amount} onClick={() => { tool('giveItem', { target: selected.id, item, amount: Number(amount) }); setItem(''); setAmount('') }}>Item geven</button>
+            <div className="field item-field"><label>Itemnaam & aantal</label><div className="input-suffix"><input value={item} onChange={(event) => setItem(event.target.value)} placeholder="Bijv. water" /><input type="number" min="1" value={itemAmount} onChange={(event) => setItemAmount(event.target.value)} placeholder="Aantal" /></div></div>
+            <button className="secondary-button" disabled={!selected || !item || !itemAmount} onClick={() => { tool('giveItem', { target: selected.id, item, amount: Number(itemAmount) }); setItem(''); setItemAmount('') }}>Item geven</button>
           </section>
           <section className="panel tool-panel"><div className="panel-heading"><div><h2>Voertuig spawnen</h2><p>Spawn een voertuig op jouw locatie</p></div></div>
             <div className="field"><label>Voertuigmodel</label><input value={vehicle} onChange={(event) => setVehicle(event.target.value)} maxLength={50} placeholder="Bijv. adder" /></div>
