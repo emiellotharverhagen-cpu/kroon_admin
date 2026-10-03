@@ -1,4 +1,10 @@
 local mutedPlayers = {}
+local frozenPlayers = {}
+local databaseReady = false
+
+AddEventHandler('kroon_admin:server:databaseReady', function()
+    databaseReady = true
+end)
 
 local function hasPermission(source)
     return source == 0 or IsPlayerAceAllowed(source, Config.Permission)
@@ -54,9 +60,9 @@ local function requirePermission(source)
     return false
 end
 
-local function validTarget(source, target)
+local function validTarget(source, target, allowSelf)
     target = tonumber(target)
-    if not target or target <= 0 or not GetPlayerName(target) or target == source then
+    if not target or target <= 0 or not GetPlayerName(target) or (target == source and not allowSelf) then
         TriggerClientEvent('kroon_admin:client:notify', source, Config.Locale.invalidPlayer, 'error')
         return nil
     end
@@ -97,7 +103,8 @@ RegisterNetEvent('kroon_admin:server:requestPlayers', function()
             name = playerName(src),
             ping = GetPlayerPing(src),
             identifiers = { license = getLicense(src) },
-            muted = mutedPlayers[src] == true
+            muted = mutedPlayers[src] == true,
+            frozen = frozenPlayers[src] == true
         }
     end
     TriggerClientEvent('kroon_admin:client:players', source, players)
@@ -145,7 +152,9 @@ RegisterNetEvent('kroon_admin:server:action', function(data)
         TriggerClientEvent('kroon_admin:client:notify', target, isMuted and Config.Locale.muted or Config.Locale.unmuted, 'info')
         logAction(source, action, target, reason)
     elseif action == 'freeze' or action == 'unfreeze' then
-        TriggerClientEvent('kroon_admin:client:freeze', target, action == 'freeze')
+        local state = action == 'freeze'
+        frozenPlayers[target] = state and true or nil
+        TriggerClientEvent('kroon_admin:client:freeze', target, state)
         logAction(source, action, target, reason)
     elseif action == 'goto' then
         TriggerClientEvent('kroon_admin:client:teleportTo', source, GetEntityCoords(GetPlayerPed(target)), GetEntityHeading(GetPlayerPed(target)))
@@ -181,7 +190,7 @@ RegisterNetEvent('kroon_admin:server:tool', function(data)
         end
         logAction(source, action, nil, safeText(data.label, 100))
     elseif action == 'giveMoney' or action == 'giveItem' then
-        local target = validTarget(source, data.target)
+        local target = validTarget(source, data.target, true)
         if not target then return end
         local framework, core = getFramework()
         if not framework then
@@ -240,6 +249,12 @@ AddEventHandler('playerConnecting', function(_, _, deferrals)
     local source = source
     deferrals.defer()
     Wait(0)
+    local readyUntil = GetGameTimer() + 30000
+    while not databaseReady and GetGameTimer() < readyUntil do Wait(100) end
+    if not databaseReady then
+        deferrals.done('De database van de server is tijdelijk niet beschikbaar. Probeer het later opnieuw.')
+        return
+    end
     local license = getLicense(source)
     local ban = MySQL.single.await(('SELECT reason, expires_at FROM `%s` WHERE license = ? AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY id DESC LIMIT 1'):format(Config.Tables.bans), { license })
     if ban then
@@ -251,6 +266,7 @@ end)
 
 AddEventHandler('playerDropped', function()
     mutedPlayers[source] = nil
+    frozenPlayers[source] = nil
 end)
 
 RegisterCommand('kroon_unban', function(source, args)

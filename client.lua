@@ -15,6 +15,10 @@ RegisterNetEvent('kroon_admin:client:open', function()
     })
 end)
 
+RegisterNetEvent('kroon_admin:client:close', function()
+    menuOpen = false
+end)
+
 RegisterNetEvent('kroon_admin:client:players', function(players)
     SendNUIMessage({ type = 'players', players = players })
 end)

@@ -4,6 +4,7 @@ end
 
 RegisterNUICallback('close', function(_, cb)
     SetNuiFocus(false, false)
+    TriggerEvent('kroon_admin:client:close')
     reply(cb)
 end)
 

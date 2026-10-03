@@ -48,5 +48,6 @@ CreateThread(function()
         print(('[kroon_admin] Database initialisatie mislukt: %s'):format(err))
     else
         print('[kroon_admin] Database is gereed.')
+        TriggerEvent('kroon_admin:server:databaseReady')
     end
 end)

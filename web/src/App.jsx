@@ -45,7 +45,11 @@ function App() {
         callNui('logs')
       }
       if (data.type === 'close') setVisible(false)
-      if (data.type === 'players') setPlayers(data.players || [])
+      if (data.type === 'players') {
+        const nextPlayers = data.players || []
+        setPlayers(nextPlayers)
+        setSelected((current) => current ? nextPlayers.find((player) => player.id === current.id) || null : null)
+      }
       if (data.type === 'logs') setLogs(data.logs || [])
       if (data.type === 'toggleState') setToggles((current) => ({ ...current, [data.toggle]: data.enabled }))
       if (data.type === 'notification') {
@@ -118,10 +122,9 @@ function App() {
               <div className="action-grid">
                 <button className="action-btn" onClick={() => playerAction('goto')}><span>⌖</span><div><strong>Ga naar</strong><small>Teleport naar speler</small></div></button>
                 <button className="action-btn" onClick={() => playerAction('bring')}><span>↙</span><div><strong>Breng hierheen</strong><small>Haal speler naar jou</small></div></button>
-                <button className="action-btn" onClick={() => playerAction('freeze')}><span>❄</span><div><strong>Bevries</strong><small>Beweging blokkeren</small></div></button>
+                <button className="action-btn" onClick={() => playerAction(selected.frozen ? 'unfreeze' : 'freeze')}><span>❄</span><div><strong>{selected.frozen ? 'Ontdooi' : 'Bevries'}</strong><small>Beweging blokkeren</small></div></button>
                 <button className="action-btn" onClick={() => playerAction('revive')}><span>＋</span><div><strong>Herstel</strong><small>Speler tot leven brengen</small></div></button>
                 <button className="action-btn" onClick={() => playerAction(selected.muted ? 'unmute' : 'mute')}><span>◖</span><div><strong>{selected.muted ? 'Ontdemp' : 'Dempen'}</strong><small>Spraakbediening</small></div></button>
-                <button className="action-btn" onClick={() => playerAction(selected.frozen ? 'unfreeze' : 'freeze')}><span>⏸</span><div><strong>{selected.frozen ? 'Ontdooi' : 'Bevries'}</strong><small>Speler vastzetten</small></div></button>
               </div>
               <div className="danger-actions"><button onClick={() => playerAction('kick')}>Verwijder speler</button><button onClick={() => playerAction('ban')}>Verban speler</button><button onClick={() => playerAction('warn')}>Waarschuw</button></div>
             </> : <div className="empty detail-empty"><div className="empty-art">♙</div><strong>Selecteer een speler</strong><small>Kies iemand uit de lijst om speleracties te bekijken.</small></div>}
