@@ -7,6 +7,8 @@
     "build": "vite build",
     "build:panel": "vite build --config staff-panel/vite.config.js",
     "build:panel-php": "vite build --config staff-panel-php/vite.config.js && node staff-panel-php/bin/publish-assets.mjs",
+    "package:server": "node scripts/package-server-files.mjs",
+    "build:server-package": "npm run build && npm run build:panel-php && npm run package:server",
     "build:all": "npm run build && npm run build:panel",
     "build:all-panels": "npm run build:all && npm run build:panel-php",
     "test:panel": "node --test staff-panel/test/*.test.mjs"

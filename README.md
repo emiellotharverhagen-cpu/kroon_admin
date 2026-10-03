@@ -17,8 +17,21 @@ Nederlandstalige FiveM admin resource met Lua-serverlogica, ACE-autorisatie en e
 
 ## Vereisten en installatie
 
+### Klaar-om-te-uploaden map
+
+Om de bestanden voor de game server en de shared webhosting bij elkaar te krijgen, voer je met Node.js en npm uit:
+
+```sh
+npm ci
+npm run build:server-package
+```
+
+Hiermee wordt `/home/runner/work/kroon_admin/kroon_admin/server-files/` aangemaakt. `server-files/fivem/kroon_admin/` is de volledige resource-map voor je FiveM-server. Upload alleen de **inhoud** van `server-files/web-panel/upload-to-document-root/` naar de document root van je webhosting. De mappen `server-files/web-panel/database/`, `private/` en `tools/` zijn installatiebestanden, niet bedoeld voor je publieke document root. Volg `server-files/web-panel/README.md`.
+
+### FiveM resource installeren
+
 1. Installeer en configureer `oxmysql` en een MySQL-database.
-2. Plaats de map `kroon_admin` in de FiveM `resources`-map. De gebouwde NUI-bestanden staan al in `web/dist`.
+2. Plaats de resource-map `kroon_admin` in de FiveM `resources`-map. De gebouwde NUI-bestanden zitten al in `web/dist`.
 3. Zorg dat `oxmysql` vóór deze resource start en voeg aan `server.cfg` toe:
 
    ```cfg
