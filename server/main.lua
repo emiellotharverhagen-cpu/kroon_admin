@@ -92,7 +92,12 @@ end
 
 RegisterNetEvent('kroon_admin:server:toggleDuty', function()
     local src = source
-    if not IsStaff(src) then return end
+    if not IsStaff(src) then
+        -- Geen stil falen: laat de speler weten waarom er niets gebeurt.
+        TriggerClientEvent('kroon_admin:client:notify', src,
+            '~r~Geen toegang.~s~ Je hebt geen staff-rechten (group.admin / group.staff).')
+        return
+    end
     if OnDuty[src] then OnDuty[src] = nil else OnDuty[src] = true end
     local state = OnDuty[src] == true
     TriggerClientEvent('kroon_admin:client:dutyState', src, state)

@@ -6,7 +6,6 @@
 
 local IsAdmin = false      -- server heeft bevestigd dat we staff zijn (info)
 local OnDuty = false       -- alleen dan werken staff-acties
-local OnDuty = false
 local MenuOpen = false
 local SavedOutfit = nil
 local NoclipActive = false
@@ -53,10 +52,13 @@ local function RestoreOutfit()
     local model = SavedOutfit.model
     if model and IsModelValid(model) and model ~= GetEntityModel(ped) then
         RequestModel(model)
-        while not HasModelLoaded(model) do Wait(10) end
-        SetPlayerModel(PlayerId(), model)
-        SetModelAsNoLongerNeeded(model)
-        ped = PlayerPedId()
+        local timeout = GetGameTimer() + 5000
+        while not HasModelLoaded(model) and GetGameTimer() < timeout do Wait(10) end
+        if HasModelLoaded(model) then
+            SetPlayerModel(PlayerId(), model)
+            SetModelAsNoLongerNeeded(model)
+            ped = PlayerPedId()
+        end
     end
     for _, c in ipairs(SavedOutfit.components or {}) do
         SetPedComponentVariation(ped, c.component, c.drawable or 0, c.texture or 0, 0)
@@ -102,6 +104,9 @@ RegisterNetEvent('kroon_admin:client:dutyState', function(state)
 end)
 
 local function RequestToggleDuty()
+    -- Sluit eerst een eventueel open staffmenu zodat de NUI-focus niet
+    -- blijft hangen wanneer de dienst wisselt.
+    if MenuOpen then SetMenuOpen(false) end
     TriggerServerEvent('kroon_admin:server:toggleDuty')
 end
 
