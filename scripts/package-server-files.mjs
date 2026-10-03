@@ -14,6 +14,7 @@ async function copy(source, destination) {
 
 await rm(output, { recursive: true, force: true })
 await mkdir(output, { recursive: true })
+await copy('docs/server-files-README.md', path.join(output, 'README.md'))
 
 for (const filename of ['fxmanifest.lua', 'config.lua', 'database.lua', 'server.lua', 'client.lua', 'nui.lua']) {
   await copy(filename, path.join(resource, filename))
