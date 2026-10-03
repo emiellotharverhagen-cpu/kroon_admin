@@ -13,6 +13,7 @@ Nederlandstalige FiveM admin resource met Lua-serverlogica, ACE-autorisatie en e
 - MySQL-opslag voor bans, waarschuwingen en beheeracties; optionele Discord-webhook.
 - Commando `/admin` en standaard sneltoets F10.
 - Apart, optioneel zelf te hosten staffwebpanel met login, sessiebeveiliging en dezelfde server-side managementacties.
+- PHP-variant voor shared hosting staat in `staff-panel-php/`; PHP ontvangt beheeracties alleen via HTTPS vanaf de game server.
 
 ## Vereisten en installatie
 
@@ -80,10 +81,13 @@ Gebruik de webhook placeholder pas nadat je een eigen webhook hebt geconfigureer
 - `database.lua`, `sql/schema.sql`: database-initialisatie en schema.
 - `web/src`: React-interface en styling.
 - `web/dist`: NUI-output die door FiveM geladen wordt.
+- `staff-panel-php/`: PHP shared-hosted panel, API bridge, hosting-MySQL schema en uploadbare output.
 
 ## Staffwebpanel (zelf hosten)
 
 Het staffwebpanel is een afzonderlijke Node.js-service die met een gedeeld geheim met de FiveM-resource communiceert. Het is optioneel; de in-game NUI blijft werken als het panel uit staat. Deze repository levert de code en deploymentbestanden, maar **host of publiceer het panel niet**. Je hebt zelf een VPS, domein en TLS-certificaat nodig. Gebruik Node.js 20 of hoger.
+
+Voor **shared hosting** gebruik je de afzonderlijke PHP-variant in [`staff-panel-php/README.md`](staff-panel-php/README.md). Upload alleen de gebouwde bestanden uit `staff-panel-php/public/` naar je domein-document root. De PHP-variant gebruikt de MySQL database van je webhosting voor staffaccounts; de game server vereist wel een beveiligde HTTPS API-proxy. De standaard HTTP-poort van FiveM rechtstreeks aan het publieke internet koppelen is niet veilig.
 
 ### FiveM-server configuratie
 

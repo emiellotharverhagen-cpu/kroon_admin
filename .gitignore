@@ -1,3 +1,5 @@
 node_modules/
 npm-debug.log*
 staff-panel/.env
+staff-panel-php/private/config.php
+staff-panel-php/build/
