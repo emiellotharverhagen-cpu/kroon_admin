@@ -121,9 +121,7 @@ function login(array $settings, PDO $db): never
     $body = requestData();
     $username = trim(is_string($body['username'] ?? null) ? $body['username'] : '');
     $password = is_string($body['password'] ?? null) ? $body['password'] : '';
-    if (!preg_match('/\A[\p{L}\p{N}_.@-]{1,64}\z/u', $username) || strlen($password) > 200) {
-        respond(401, ['ok' => false, 'error' => 'Gebruikersnaam of wachtwoord onjuist.']);
-    }
+    $validUsername = preg_match('/\A[\p{L}\p{N}_.@-]{1,64}\z/u', $username) === 1;
     $remoteAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     $ipHash = hash_hmac('sha256', $remoteAddress, $settings['rate_limit_secret']);
     $db->beginTransaction();
@@ -144,11 +142,14 @@ function login(array $settings, PDO $db): never
             $attempt = ['attempt_count' => 0, 'window_started_at' => gmdate('Y-m-d H:i:s'), 'blocked_until' => null];
         }
         $staffQuery = $db->prepare('SELECT id, username, password_hash FROM staff_users WHERE username = ? LIMIT 1');
-        $staffQuery->execute([$username]);
+        $staffQuery->execute([$validUsername ? $username : '']);
         $staff = $staffQuery->fetch();
-        $passwordValid = $staff
+        $passwordValid = $staff && strlen($password) <= 200
             ? password_verify($password, $staff['password_hash'])
             : password_verify($password, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.');
+        if (strlen($password) > 200) {
+            $passwordValid = false;
+        }
         if (!$staff || !$passwordValid) {
             $count = (int)$attempt['attempt_count'] + 1;
             $blockedUntil = $count >= 10 ? gmdate('Y-m-d H:i:s', time() + 900) : null;
@@ -198,6 +199,8 @@ function proxyGameServer(array $settings, string $route, string $method, ?array 
         CURLOPT_TIMEOUT => 10,
         CURLOPT_SSL_VERIFYPEER => true,
         CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_CUSTOMREQUEST => $method,
     ]);
@@ -258,6 +261,9 @@ if ($route === 'session' && $method === 'GET') {
     respond(200, ['authenticated' => false]);
 }
 if ($route === 'login' && $method === 'POST') {
+    if (!validOrigin($settings)) {
+        respond(403, ['ok' => false, 'error' => 'Aanvraag geweigerd.']);
+    }
     try {
         login($settings, database($settings));
     } catch (Throwable $error) {
