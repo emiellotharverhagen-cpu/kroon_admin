@@ -4,7 +4,8 @@
 --  spectate, voertuig-acties, F9 staffmenu (NUI)
 -- ══════════════════════════════════════════════════════════════
 
-local IsAdmin = false      -- server heeft bevestigd dat we staff zijn
+local IsAdmin = false      -- server heeft bevestigd dat we staff zijn (info)
+local OnDuty = false       -- alleen dan werken staff-acties
 local OnDuty = false
 local MenuOpen = false
 local SavedOutfit = nil
@@ -241,7 +242,7 @@ function StopSpectate()
 end
 
 RegisterNetEvent('kroon_admin:client:spectate', function(targetId, targetCoords)
-    if not IsAdmin then return end
+    if not OnDuty then return end -- alleen tijdens staffdienst
     local wasSpectating = Spectating
     local oldTarget = SpectateTarget
     if Spectating then StopSpectate() end

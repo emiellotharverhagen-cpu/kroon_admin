@@ -84,6 +84,12 @@ end
 local OnDuty = {}      -- [src] = true
 local Noclippers = {}  -- [src] = true (voor noclip sync tussen staff)
 
+--- Mag deze speler staff-tools gebruiken?
+--- Vereist zowel staff-rechten ALS actieve staffdienst (F11).
+local function CanUseStaffTools(src)
+    return IsStaff(src) and OnDuty[src] == true
+end
+
 RegisterNetEvent('kroon_admin:server:toggleDuty', function()
     local src = source
     if not IsStaff(src) then return end
@@ -121,7 +127,7 @@ end
 
 RegisterNetEvent('kroon_admin:server:getPlayers', function()
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     TriggerClientEvent('kroon_admin:client:receivePlayers', src, BuildPlayerList())
 end)
 
@@ -129,7 +135,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:kick', function(targetId, reason)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     reason = tostring(reason or 'Geen reden opgegeven'):sub(1, 128)
@@ -140,7 +146,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:warn', function(targetId, reason)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     reason = tostring(reason or 'Geen reden opgegeven'):sub(1, 128)
@@ -162,7 +168,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:getWarns', function(targetId)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     local license = GetIdentifier(targetId, 'license') or ('id:' .. targetId)
@@ -172,7 +178,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:goto', function(targetId)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     local coords = GetEntityCoords(GetPlayerPed(targetId))
@@ -183,7 +189,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:bring', function(targetId)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     local coords = GetEntityCoords(GetPlayerPed(src))
@@ -194,7 +200,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:spectate', function(targetId)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     local coords = GetEntityCoords(GetPlayerPed(targetId))
@@ -208,7 +214,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:noclipState', function(active)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     Noclippers[src] = active and true or nil
     for _, pid in ipairs(GetPlayers()) do
         pid = tonumber(pid)
@@ -256,7 +262,7 @@ end
 
 RegisterNetEvent('kroon_admin:server:getGarageVehicles', function(filterOwner)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     local vehicles = NormalizeVehicles(GetAllGarageVehicles())
     if filterOwner and filterOwner ~= '' then
         local filtered = {}
@@ -270,7 +276,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:vehicleAction', function(action, plate)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     plate = tostring(plate or '')
     if plate == '' then return end
     action = tostring(action)
@@ -319,7 +325,7 @@ end
 
 RegisterNetEvent('kroon_admin:server:getInventory', function(targetId)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId = tonumber(targetId)
     if not targetId or not GetPlayerName(targetId) then return end
     local ox = GetOxInventory()
@@ -337,7 +343,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:inventoryGive', function(targetId, item, count)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId, count = tonumber(targetId), tonumber(count) or 1
     if not targetId or not GetPlayerName(targetId) then return end
     item = tostring(item or '')
@@ -353,7 +359,7 @@ end)
 
 RegisterNetEvent('kroon_admin:server:inventoryRemove', function(targetId, item, count, slot)
     local src = source
-    if not IsStaff(src) then return end
+    if not CanUseStaffTools(src) then return end
     targetId, count = tonumber(targetId), tonumber(count) or 1
     if not targetId or not GetPlayerName(targetId) then return end
     item = tostring(item or '')
