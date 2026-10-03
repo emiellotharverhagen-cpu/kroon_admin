@@ -109,7 +109,18 @@ RegisterNetEvent('kroon_admin:client:toggle', function(toggle)
     if toggle == 'invisible' then
         SetEntityVisible(PlayerPedId(), not toggles.invisible, false)
     end
+    TriggerServerEvent('kroon_admin:server:updateToggle', toggle, toggles[toggle])
     notify(('%s %s'):format(toggle, toggles[toggle] and 'ingeschakeld' or 'uitgeschakeld'), 'success')
+    SendNUIMessage({ type = 'toggleState', toggle = toggle, enabled = toggles[toggle] })
+end)
+
+RegisterNetEvent('kroon_admin:client:setToggle', function(toggle, enabled)
+    if toggles[toggle] == nil then return end
+    toggles[toggle] = enabled == true
+    if toggle == 'invisible' then
+        SetEntityVisible(PlayerPedId(), not toggles.invisible, false)
+    end
+    notify(('%s %s'):format(toggle, toggles[toggle] and 'ingeschakeld' or 'uitgeschakeld'), 'info')
     SendNUIMessage({ type = 'toggleState', toggle = toggle, enabled = toggles[toggle] })
 end)
 
