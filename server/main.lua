@@ -58,17 +58,6 @@ local function GetIdentifier(src, kind)
     return nil
 end
 
-local function FindByIdentifier(identifier)
-    for _, pid in ipairs(GetPlayers()) do
-        for i = 0, GetNumPlayerIdentifiers(pid) - 1 do
-            if GetPlayerIdentifier(pid, i) == identifier then
-                return tonumber(pid)
-            end
-        end
-    end
-    return nil
-end
-
 --- Warns (bestand-gebaseerd, geen DB nodig) ----------------------
 
 local Warns = nil
@@ -92,7 +81,8 @@ end
 
 --- Staffdienst state ---------------------------------------------
 
-local OnDuty = {}   -- [src] = true
+local OnDuty = {}      -- [src] = true
+local Noclippers = {}  -- [src] = true (voor noclip sync tussen staff)
 
 RegisterNetEvent('kroon_admin:server:toggleDuty', function()
     local src = source
@@ -106,6 +96,7 @@ end)
 
 AddEventHandler('playerDropped', function()
     OnDuty[source] = nil
+    Noclippers[source] = nil
 end)
 
 --- Spelerslijst ---------------------------------------------------
@@ -215,8 +206,6 @@ end)
 
 --- Noclip sync (broadcast state zodat staff elkaar kan zien) -------
 
-local Noclippers = {}
-
 RegisterNetEvent('kroon_admin:server:noclipState', function(active)
     local src = source
     if not IsStaff(src) then return end
@@ -227,10 +216,6 @@ RegisterNetEvent('kroon_admin:server:noclipState', function(active)
             TriggerClientEvent('kroon_admin:client:noclipState', pid, src, active == true)
         end
     end
-end)
-
-AddEventHandler('playerDropped', function()
-    Noclippers[source] = nil
 end)
 
 --- okokGarage integratie -------------------------------------------

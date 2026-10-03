@@ -50,7 +50,7 @@ local function RestoreOutfit()
     if not SavedOutfit then return end
     local ped = PlayerPedId()
     local model = SavedOutfit.model
-    if model and IsModelValid(model) then
+    if model and IsModelValid(model) and model ~= GetEntityModel(ped) then
         RequestModel(model)
         while not HasModelLoaded(model) do Wait(10) end
         SetPlayerModel(PlayerId(), model)
@@ -242,11 +242,12 @@ end
 
 RegisterNetEvent('kroon_admin:client:spectate', function(targetId, targetCoords)
     if not IsAdmin then return end
-    if Spectating and SpectateTarget == targetId then
-        StopSpectate()
-        return
-    end
+    local wasSpectating = Spectating
+    local oldTarget = SpectateTarget
     if Spectating then StopSpectate() end
+    if wasSpectating and oldTarget == targetId then
+        return -- nogmaals op dezelfde speler = stop spectaten
+    end
     local ped = PlayerPedId()
     SetEntityCoords(ped, targetCoords.x, targetCoords.y, targetCoords.z - 3.0, false, false, false, false)
     FreezeEntityPosition(ped, true)

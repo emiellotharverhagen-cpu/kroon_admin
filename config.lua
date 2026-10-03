@@ -14,17 +14,9 @@ Config.AdminLicenses = {
     -- 'license:1234567890abcdef1234567890abcdef12345678',
 }
 
--- Gedeeld geheim tussen de FiveM resource en het web staffpanel.
--- Stel dit in via server.cfg (verander dit naar iets unieks!):
---   setr kroon_admin_panel_token "jouw-super-geheime-token"
--- Gebruik dezelfde waarde als PANEL_SHARED_TOKEN in staff-panel/server.mjs
-Config.PanelTokenConvar = 'kroon_admin_panel_token'
-
--- Toetsen (GTA control ids)
-Config.Keys = {
-    StaffDuty = 344,   -- F11
-    Menu      = 56,    -- F9
-}
+-- Toetsen
+-- Staffdienst (F11) en menu (F9) worden via RegisterKeyMapping gebonden zodat
+-- spelers ze zelf kunnen aanpassen in Instellingen > Keybindings > FiveM.
 
 -- Noclip (TxAdmin-stijl: rechtermuisknop togglet, muis-look, WASD bewegen)
 Config.Noclip = {
@@ -82,6 +74,3 @@ Config.Garage = {
 
 -- ox_inventory
 Config.OxInventoryResource = 'ox_inventory'
-
--- Web staffpanel standaardpoort (alleen ter info, de poort staat in staff-panel/server.mjs)
-Config.PanelPort = 30121

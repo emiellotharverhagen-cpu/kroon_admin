@@ -281,6 +281,7 @@
         modalTitle.textContent = title;
         modalBody.innerHTML = bodyHtml;
         modalAction = onOk;
+        modalOk.style.display = '';
         modal.classList.add('open');
     }
     function closeModal() {
@@ -297,6 +298,11 @@
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[c]));
+    }
+
+    // Veilige JS-string voor gebruik in inline onclick handlers
+    function jsq(s) {
+        return String(JSON.stringify(String(s == null ? '' : s))).replace(/</g, '\\u003c');
     }
 
     // --- Tabs ---
@@ -326,10 +332,10 @@
                         <button class="btn primary" onclick="actSpectate(${p.id})">Spectate</button>
                         <button class="btn" onclick="actGoto(${p.id})">Ga naar</button>
                         <button class="btn" onclick="actBring(${p.id})">Breng</button>
-                        <button class="btn" onclick="actInventory(${p.id}, '${esc(p.name)}')">Inventory</button>
-                        <button class="btn" onclick="actWarns(${p.id}, '${esc(p.name)}')">Warns</button>
-                        <button class="btn danger" onclick="actWarn(${p.id}, '${esc(p.name)}')">Warn</button>
-                        <button class="btn danger" onclick="actKick(${p.id}, '${esc(p.name)}')">Kick</button>
+                        <button class="btn" onclick="actInventory(${p.id}, ${jsq(p.name)})">Inventory</button>
+                        <button class="btn" onclick="actWarns(${p.id}, ${jsq(p.name)})">Warns</button>
+                        <button class="btn danger" onclick="actWarn(${p.id}, ${jsq(p.name)})">Warn</button>
+                        <button class="btn danger" onclick="actKick(${p.id}, ${jsq(p.name)})">Kick</button>
                     </td>
                 </tr>`).join('');
         document.getElementById('playerRows').innerHTML =
@@ -405,9 +411,9 @@
                     <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${esc(v.owner)}</td>
                     <td>${esc(v.garage || '-')}</td>
                     <td>
-                        <button class="btn ok" onclick="vehAction('spawn', '${esc(v.plate)}')">Spawn</button>
-                        <button class="btn primary" onclick="vehAction('repair', '${esc(v.plate)}')">Repareer</button>
-                        <button class="btn danger" onclick="vehAction('delete', '${esc(v.plate)}')">Verwijder</button>
+                        <button class="btn ok" onclick="vehAction('spawn', ${jsq(v.plate)})">Spawn</button>
+                        <button class="btn primary" onclick="vehAction('repair', ${jsq(v.plate)})">Repareer</button>
+                        <button class="btn danger" onclick="vehAction('delete', ${jsq(v.plate)})">Verwijder</button>
                     </td>
                 </tr>`).join('');
         document.getElementById('vehicleRows').innerHTML =
@@ -448,7 +454,7 @@
                         ? items.map(i => `
                             <div class="warn-item" style="border-left-color: var(--accent)">
                                 ${esc(i.label || i.name)} &times; ${esc(i.count)}
-                                <button class="btn danger" style="float:right" onclick="invRemove('${esc(i.name)}', ${i.slot == null ? 'null' : i.slot})">Wegnemen</button>
+                                <button class="btn danger" style="float:right" onclick='invRemove(${jsq(i.name)}, ${i.slot == null ? 'null' : i.slot})'>Wegnemen</button>
                                 <small>${esc(i.name)}${i.slot != null ? ' · slot ' + esc(i.slot) : ''}</small>
                             </div>`).join('')
                         : '<div class="empty">Inventory is leeg</div>');
